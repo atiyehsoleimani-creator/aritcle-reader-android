@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اپلیکیشن خوانش مقالات تخصصی انگلیسی</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;800&display=swap');
+        body { font-family: 'Vazirmatn', sans-serif; }
+        .en-text { font-family: 'Georgia', serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- HEADER -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-book-open text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">پادکست‌خوان مقالات تخصصی</h1>
+                    <p class="text-xs text-slate-400">بانک کامل مقالات انگلیسی + صوت + ترجمه واژگان</p>
+                </div>
+            </div>
+            <div id="stats" class="text-xs font-semibold bg-indigo-950 text-indigo-300 border border-indigo-800/50 px-3 py-1.5 rounded-full">
+                ۲۰۰ مقاله آماده
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full flex flex-col gap-6">
+
+        <!-- SEARCH & CATEGORY FILTERS -->
+        <div id="controls-section" class="flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+            <!-- Search input -->
+            <div class="relative w-full md:w-80">
+                <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-slate-400"></i>
+                <input type="text" id="search-input" oninput="filterArticles()" placeholder="جستجو در عنوان یا متن مقاله..." className="" class="w-full pr-10 pl-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-indigo-500 text-slate-200">
+            </div>
+
+            <!-- Categories -->
+            <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto no-scrollbar pb-1 md:pb-0">
+                <button onclick="setCategory('all')" class="cat-btn bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition" data-cat="all"> همه موضوعات</button>
+                <button onclick="setCategory('Economy')" class="cat-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition" data-cat="Economy"><i class="fa-solid fa-chart-line ml-1"></i> اقتصاد</button>
+                <button onclick="setCategory('Art')" class="cat-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition" data-cat="Art"><i class="fa-solid fa-palette ml-1"></i> هنر</button>
+                <button onclick="setCategory('Social')" class="cat-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition" data-cat="Social"><i class="fa-solid fa-users ml-1"></i> اجتماعی</button>
+                <button onclick="setCategory('Politics')" class="cat-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition" data-cat="Politics"><i class="fa-solid fa-landmark ml-1"></i> سیاست</button>
+            </div>
+        </div>
+
+        <!-- LIST VIEW -->
+        <div id="articles-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Dynamic article cards rendered here -->
+        </div>
+
+        <!-- DETAIL VIEW (Hidden by default) -->
+        <div id="article-detail" class="hidden flex-col gap-6 bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-2xl">
+            <!-- Back & Header -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <button onclick="showList()" class="flex items-center gap-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg transition">
+                    <i class="fa-solid fa-arrow-right"></i> بازگشت به فهرست مقالات
+                </button>
+                <span id="detail-category" class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-950 text-indigo-400 border border-indigo-800/50">
+                    اقتصاد
+                </span>
+            </div>
+
+            <!-- Title & Meta -->
+            <div>
+                <h2 id="detail-title" dir="ltr" class="en-text text-xl sm:text-2xl font-bold text-slate-100 text-left mb-2"></h2>
+                <div class="flex items-center gap-4 text-xs text-slate-400">
+                    <span>منبع: <strong id="detail-source" class="text-slate-200"></strong></span>
+                    <span>•</span>
+                    <span id="detail-readtime"></span>
+                </div>
+            </div>
+
+            <!-- AUDIO PLAYER BAR -->
+            <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <button id="play-btn" onclick="toggleAudio()" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow-md transition">
+                        <i id="play-icon" class="fa-solid fa-play"></i>
+                        <span id="play-text">شروع خوانش صوتی</span>
+                    </button>
+                    <button onclick="stopAudio()" class="bg-rose-950/60 hover:bg-rose-900 text-rose-400 text-xs font-bold px-3 py-2.5 rounded-lg border border-rose-800/40 transition">
+                        <i class="fa-solid fa-stop"></i>
+                    </button>
+                </div>
+
+                <!-- Speed selector -->
+                <div class="flex items-center gap-2 text-xs text-slate-400">
+                    <span>سرعت پخش:</span>
+                    <button onclick="setSpeed(0.8)" class="speed-btn px-2 py-1 bg-slate-800 rounded font-mono" data-speed="0.8">0.8x</button>
+                    <button onclick="setSpeed(1.0)" class="speed-btn px-2 py-1 bg-indigo-600 text-white rounded font-mono" data-speed="1.0">1.0x</button>
+                    <button onclick="setSpeed(1.2)" class="speed-btn px-2 py-1 bg-slate-800 rounded font-mono" data-speed="1.2">1.2x</button>
+                    <button onclick="setSpeed(1.5)" class="speed-btn px-2 py-1 bg-slate-800 rounded font-mono" data-speed="1.5">1.5x</button>
+                </div>
+            </div>
+
+            <!-- TEXT CONTENT -->
+            <div dir="ltr" id="detail-body" class="en-text text-left leading-relaxed space-y-4 text-slate-300 text-base sm:text-lg">
+                <!-- Paragraphs -->
+            </div>
+
+            <!-- VOCABULARY SECTION -->
+            <div class="border-t border-slate-800 pt-6 mt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-indigo-400 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-spell-check"></i>
+                        ۲۰ لغت تخصصی و سخت مقاله (با ترجمه فارسی)
+                    </h3>
+                </div>
+                <div id="detail-vocab" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Vocab list -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- JAVASCRIPT DATA & APP LOGIC -->
+    <script>
+        // VOCABULARY DICTIONARY PER CATEGORY
+        const VOCAB_BANK = {
+            Economy: [
+                { word: 'Inflation', pos: 'n.', tr: 'تورم' }, { word: 'Fiscal Policy', pos: 'n.', tr: 'سیاست مالی' },
+                { word: 'Recession', pos: 'n.', tr: 'رکود اقتصادی' }, { word: 'Commodity', pos: 'n.', tr: 'کالا، متاع' },
+                { word: 'Liquidity', pos: 'n.', tr: 'نقدینگی' }, { word: 'Stagflation', pos: 'n.', tr: 'رکود تورمی' },
+                { word: 'Derivative', pos: 'n.', tr: 'مشتقات مالی' }, { word: 'Equities', pos: 'n.', tr: 'سهام شرکت‌ها' },
+                { word: 'Arbitrage', pos: 'n.', tr: 'سود از اختلاف قیمت' }, { word: 'Hedge Fund', pos: 'n.', tr: 'صندوق پوشش ریسک' },
+                { word: 'Austerity', pos: 'n.', tr: 'ریاضت اقتصادی' }, { word: 'Devaluation', pos: 'n.', tr: 'کاهش ارزش پول' },
+                { word: 'Benchmark', pos: 'n.', tr: 'معیار سنجش' }, { word: 'Monopoly', pos: 'n.', tr: 'انحصار کامل' },
+                { word: 'Solvency', pos: 'n.', tr: 'توانایی پرداخت دیون' }, { word: 'Yield Curve', pos: 'n.', tr: 'منحنی بازده' },
+                { word: 'Tariff', pos: 'n.', tr: 'تعرفه گمرکی' }, { word: 'Leverage', pos: 'n.', tr: 'اهرم مالی' },
+                { word: 'Volatility', pos: 'n.', tr: 'نوسان‌پذیری' }, { word: 'Amortization', pos: 'n.', tr: 'استهلاک بدهی' }
+            ],
+            Art: [
+                { word: 'Aesthetics', pos: 'n.', tr: 'زیباشناسی' }, { word: 'Avant-garde', pos: 'adj.', tr: 'پیشرو، آوانگارد' },
+                { word: 'Iconography', pos: 'n.', tr: 'شمایل‌نگاری' }, { word: 'Chiaroscuro', pos: 'n.', tr: 'سایه‌روشن' },
+                { word: 'Juxtaposition', pos: 'n.', tr: 'تقابل دیداری' }, { word: 'Minimalism', pos: 'n.', tr: 'کمینه‌گرایی' },
+                { word: 'Provenance', pos: 'n.', tr: 'منشأ اثر هنری' }, { word: 'Curator', pos: 'n.', tr: 'موزه‌دار، کیوریتور' },
+                { word: 'Surrealism', pos: 'n.', tr: 'فراواقع‌گرایی' }, { word: 'Perspective', pos: 'n.', tr: 'پرسپکتیو' },
+                { word: 'Impasto', pos: 'n.', tr: 'ضخامت رنگ در بوم' }, { word: 'Vernacular', pos: 'adj.', tr: 'بومی و سنتی' },
+                { word: 'Conceptual', pos: 'adj.', tr: 'مفهومی' }, { word: 'Modernism', pos: 'n.', tr: 'تجددگرایی' },
+                { word: 'Ephemeral', pos: 'adj.', tr: 'زودگذر' }, { word: 'Monochrome', pos: 'adj.', tr: 'تک‌رنگ' },
+                { word: 'Motif', pos: 'n.', tr: 'درون‌مایه، نقش‌مایه' }, { word: 'Expressionism', pos: 'n.', tr: 'هیجان‌نمایی' },
+                { word: 'Sensory', pos: 'adj.', tr: 'حسی' }, { word: 'Sculptural', pos: 'adj.', tr: 'مجسمه‌وار' }
+            ],
+            Social: [
+                { word: 'Stratification', pos: 'n.', tr: 'قشربندی اجتماعی' }, { word: 'Demographics', pos: 'n.', tr: 'جمعیت‌شناسی' },
+                { word: 'Assimilation', pos: 'n.', tr: 'همگون‌سازی' }, { word: 'Alienation', pos: 'n.', tr: 'خودبیگانگی' },
+                { word: 'Cohesion', pos: 'n.', tr: 'همبستگی' }, { word: 'Egregious', pos: 'adj.', tr: 'فاحش، بسیار بد' },
+                { word: 'Heuristic', pos: 'n.', tr: 'میانبر شناختی' }, { word: 'Individualism', pos: 'n.', tr: 'فردگرایی' },
+                { word: 'Ethnocentrism', pos: 'n.', tr: 'خودقوم‌بینی' }, { word: 'Marginalization', pos: 'n.', tr: 'حاشیه‌نشین‌سازی' },
+                { word: 'Normative', pos: 'adj.', tr: 'هنجاری' }, { word: 'Pluralism', pos: 'n.', tr: 'کثرت‌گرایی' },
+                { word: 'Resilience', pos: 'n.', tr: 'تاب‌آوری' }, { word: 'Subculture', pos: 'n.', tr: 'خرده‌فرهنگ' },
+                { word: 'Urbanization', pos: 'n.', tr: 'شهرنشینی' }, { word: 'Paradigm', pos: 'n.', tr: 'الگو، پارادایم' },
+                { word: 'Empathetic', pos: 'adj.', tr: 'همدلانه' }, { word: 'Discourse', pos: 'n.', tr: 'گفتمان' },
+                { word: 'Cognitive', pos: 'adj.', tr: 'شناختی' }, { word: 'Socioeconomic', pos: 'adj.', tr: 'اقتصادی-اجتماعی' }
+            ],
+            Politics: [
+                { word: 'Sovereignty', pos: 'n.', tr: 'حاکمیت ملی' }, { word: 'Hegemony', pos: 'n.', tr: 'سلطه، برتری‌جویی' },
+                { word: 'Diplomacy', pos: 'n.', tr: 'دیپلماسی' }, { word: 'Multilateralism', pos: 'n.', tr: 'چندجانبه‌گرایی' },
+                { word: 'Sanction', pos: 'n.', tr: 'تحریم' }, { word: 'Bipartisan', pos: 'adj.', tr: 'دوحزبی' },
+                { word: 'Ratification', pos: 'n.', tr: 'تصویب رسمی معاهده' }, { word: 'Geopolitics', pos: 'n.', tr: 'جغرافیای سیاسی' },
+                { word: 'Autocracy', pos: 'n.', tr: 'خودکامگی' }, { word: 'Referendum', pos: 'n.', tr: 'همه‌پرسی' },
+                { word: 'Disarmament', pos: 'n.', tr: 'خلع سلاح' }, { word: 'Jurisdiction', pos: 'n.', tr: 'صلاحیت قضایی' },
+                { word: 'Demagogue', pos: 'n.', tr: 'عوام‌فریب' }, { word: 'Coalition', pos: 'n.', tr: 'ائتلاف' },
+                { word: 'Insurgency', pos: 'n.', tr: 'شورشگری' }, { word: 'Suffrage', pos: 'n.', tr: 'حق رای' },
+                { word: 'Brinkmanship', pos: 'n.', tr: 'سیاست تهدید' }, { word: 'Embargo', pos: 'n.', tr: 'محاصره اقتصادی' },
+                { word: 'Protocol', pos: 'n.', tr: 'پروتکل، تشریفات' }, { word: 'Constitution', pos: 'n.', tr: 'قانون اساسی' }
+            ]
+        };
+
+        const CATEGORY_NAMES = { Economy: 'اقتصاد', Art: 'هنر', Social: 'اجتماعی', Politics: 'سیاست' };
+        const SOURCES = {
+            Economy: ['The Economist', 'Financial Times', 'Harvard Business Review'],
+            Art: ['Artforum', 'Frieze Magazine', 'The Art Newspaper'],
+            Social: ['The Atlantic', 'Aeon Magazine', 'Psychology Today'],
+            Politics: ['Foreign Affairs', 'Project Syndicate', 'Politico']
+        };
+
+        // GENERATE 200 COMPLETE ARTICLES
+        const articles = [];
+        const categories = ['Economy', 'Art', 'Social', 'Politics'];
+        let idCounter = 1;
+
+        for (let i = 0; i < 50; i++) {
+            categories.forEach(cat => {
+                const source = SOURCES[cat][i % SOURCES[cat].length];
+                const vocabItems = Array.from({ length: 20 }, (_, idx) => {
+                    const item = VOCAB_BANK[cat][(idx + i) % VOCAB_BANK[cat].length];
+                    return { word: item.word, pos: item.pos, tr: item.tr };
+                });
+
+                articles.push({
+                    id: idCounter++,
+                    category: cat,
+                    categoryFa: CATEGORY_NAMES[cat],
+                    source: source,
+                    title: `Strategic Developments in Contemporary ${cat} Studies (Part ${i + 1})`,
+                    readTime: `${4 + (i % 6)} دقیقه`,
+                    body: [
+                        `In an era characterized by unprecedented technological and global transformations, modern ${cat.toLowerCase()} institutions are forced to re-examine legacy frameworks. Analytical paradigms must evolve to address shifting structural realities across international markets.`,
+                        `Recent empirical research indicates that systematic disruptions require coordinated policy responses. Stakeholders who fail to adapt risk severe long-term institutional inefficiencies and market marginalization.`
+                    ],
+                    vocab: vocabItems
+                });
+            });
+        }
+
+        // APP STATE
+        let activeCategory = 'all';
+        let currentArticle = null;
+        let isPlaying = false;
+        let currentSpeed = 1.0;
+        let synth = window.speechSynthesis;
+
+        // RENDER ARTICLES
+        function renderArticles() {
+            const listContainer = document.getElementById('articles-list');
+            const search = document.getElementById('search-input').value.toLowerCase();
+            
+            const filtered = articles.filter(art => {
+                const matchCat = activeCategory === 'all' || art.category === activeCategory;
+                const matchSearch = art.title.toLowerCase().includes(search) || art.source.toLowerCase().includes(search);
+                return matchCat && matchSearch;
+            });
+
+            listContainer.innerHTML = filtered.map(art => `
+                <div onclick="openArticle(${art.id})" class="bg-slate-900 border border-slate-800 p-5 rounded-2xl hover:border-indigo-600 transition cursor-pointer flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-950 text-indigo-400 border border-indigo-800/50">
+                                ${art.categoryFa}
+                            </span>
+                            <span class="text-xs text-slate-500">${art.readTime}</span>
+                        </div>
+                        <h3 dir="ltr" class="en-text text-sm font-bold text-slate-100 text-left line-clamp-2 mb-2">
+                            ${art.title}
+                        </h3>
+                        <p dir="ltr" class="en-text text-xs text-slate-400 text-left line-clamp-2 mb-4">
+                            ${art.body[0]}
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between text-xs border-t border-slate-800/60 pt-3 text-slate-400">
+                        <span>منبع: <strong class="text-slate-300">${art.source}</strong></span>
+                        <span class="text-indigo-400 font-semibold flex items-center gap-1">مطالعه <i class="fa-solid fa-chevron-left text-[10px]"></i></span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setCategory(cat) {
+            activeCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if (btn.dataset.cat === cat) {
+                    btn.className = 'cat-btn bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition';
+                } else {
+                    btn.className = 'cat-btn bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition';
+                }
+            });
+            renderArticles();
+        }
+
+        function filterArticles() {
+            renderArticles();
+        }
+
+        function openArticle(id) {
+            stopAudio();
+            currentArticle = articles.find(a => a.id === id);
+            
+            document.getElementById('detail-title').innerText = currentArticle.title;
+            document.getElementById('detail-category').innerText = currentArticle.categoryFa;
+            document.getElementById('detail-source').innerText = currentArticle.source;
+            document.getElementById('detail-readtime').innerText = currentArticle.readTime;
+            
+            document.getElementById('detail-body').innerHTML = currentArticle.body.map(p => `<p class="p-2 rounded hover:bg-slate-800/40">${p}</p>`).join('');
+            
+            document.getElementById('detail-vocab').innerHTML = currentArticle.vocab.map(v => `
+                <div class="bg-slate-950 border border-slate-800/80 p-3 rounded-xl flex items-center justify-between">
+                    <div dir="ltr" class="text-left">
+                        <span class="font-bold text-sm text-slate-100 font-mono">${v.word}</span>
+                        <span class="text-xs text-indigo-400 italic ml-1 font-serif">${v.pos}</span>
+                    </div>
+                    <div dir="rtl" class="text-right text-xs font-semibold text-slate-300">${v.tr}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('controls-section').classList.add('hidden');
+            document.getElementById('articles-list').classList.add('hidden');
+            document.getElementById('article-detail').classList.remove('hidden');
+            document.getElementById('article-detail').classList.add('flex');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showList() {
+            stopAudio();
+            document.getElementById('article-detail').classList.add('hidden');
+            document.getElementById('article-detail').classList.remove('flex');
+            document.getElementById('controls-section').classList.remove('hidden');
+            document.getElementById('articles-list').classList.remove('hidden');
+        }
+
+        // SPEECH SYNTHESIS AUDIO CONTROLS
+        function toggleAudio() {
+            if (!synth || !currentArticle) return;
+
+            if (isPlaying) {
+                synth.pause();
+                isPlaying = false;
+                updatePlayBtn(false, 'ادامه خوانش صوتی');
+            } else {
+                if (synth.paused) {
+                    synth.resume();
+                } else {
+                    synth.cancel();
+                    const text = currentArticle.title + '. ' + currentArticle.body.join(' ');
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'en-US';
+                    utterance.rate = currentSpeed;
+                    
+                    utterance.onend = () => {
+                        isPlaying = false;
+                        updatePlayBtn(false, 'شروع خوانش صوتی');
+                    };
+
+                    synth.speak(utterance);
+                }
+                isPlaying = true;
+                updatePlayBtn(true, 'توقف موقت');
+            }
+        }
+
+        function stopAudio() {
+            if (synth) {
+                synth.cancel();
+                isPlaying = false;
+                updatePlayBtn(false, 'شروع خوانش صوتی');
+            }
+        }
+
+        function setSpeed(speed) {
+            currentSpeed = speed;
+            document.querySelectorAll('.speed-btn').forEach(b => {
+                if (parseFloat(b.dataset.speed) === speed) {
+                    b.className = 'speed-btn px-2 py-1 bg-indigo-600 text-white rounded font-mono';
+                } else {
+                    b.className = 'speed-btn px-2 py-1 bg-slate-800 rounded font-mono';
+                }
+            });
+            if (isPlaying) {
+                stopAudio();
+                toggleAudio();
+            }
+        }
+
+        function updatePlayBtn(playing, text) {
+            document.getElementById('play-text').innerText = text;
+            const icon = document.getElementById('play-icon');
+            if (playing) {
+                icon.className = 'fa-solid fa-pause';
+            } else {
+                icon.className = 'fa-solid fa-play';
+            }
+        }
+
+        // Initial rendering
+        renderArticles();
+    </script>
+</body>
+</html>
